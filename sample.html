@@ -68,10 +68,42 @@
     </ul>
 
     <h3 style="font-size: 16px; font-weight: 600; color: #2a5bd7; margin-bottom: 8px;">Communication</h3>
-    <p style="font-size: 14px; line-height: 1.8; color: #444; margin-bottom: 24px;">
+    <p style="font-size: 14px; line-height: 1.8; color: #444; margin-bottom: 16px;">
       Internal service-to-service calls use gRPC over mTLS. External clients communicate via REST over HTTPS.
       Asynchronous workflows are handled through an event bus (Kafka-compatible).
     </p>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+      <thead>
+        <tr>
+          <th style="text-align: left; padding: 8px 12px; border-bottom: 2px solid #2a5bd7; color: #2a5bd7; font-weight: 600; width: 25%;">Service</th>
+          <th style="text-align: left; padding: 8px 12px; border-bottom: 2px solid #2a5bd7; color: #2a5bd7; font-weight: 600; width: 25%;">Protocol</th>
+          <th style="text-align: left; padding: 8px 12px; border-bottom: 2px solid #2a5bd7; color: #2a5bd7; font-weight: 600;">Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; color: #444;">Gateway</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; color: #444;">HTTPS / TLS</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; color: #444;">Entry point, TLS termination, routing</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; color: #444;">Auth Service</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; color: #444;">gRPC / mTLS</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; color: #444;">JWT issuance, OAuth flows</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; color: #444;">Data API</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; color: #444;">REST / HTTPS</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; color: #444;">Read/write to canonical data store</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; color: #444;">Event Bus</td>
+          <td style="padding: 8px 12px; color: #444;">Kafka (async)</td>
+          <td style="padding: 8px 12px; color: #444;">Asynchronous event routing</td>
+        </tr>
+      </tbody>
+    </table>
 
     <!-- Section 3 -->
     <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px; margin-top: 40px;">§ 3  Scope</h2>

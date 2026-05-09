@@ -15,6 +15,7 @@ const SNIPPETS: Snippet[] = [
   { label: 'List',      tag: 'UL',  html: '<ul>\n  <li>Item</li>\n  <li>Item</li>\n</ul>' },
   { label: 'Button',    tag: 'BTN', html: '<button>Button</button>' },
   { label: 'Link',      tag: 'A',   html: '<a href="#">Link</a>' },
+  { label: 'Table',     tag: 'TBL', html: '<table>\n  <thead><tr><th>Header</th><th>Header</th></tr></thead>\n  <tbody>\n    <tr><td>Cell</td><td>Cell</td></tr>\n    <tr><td>Cell</td><td>Cell</td></tr>\n  </tbody>\n</table>' },
 ];
 
 export class AddPanel {

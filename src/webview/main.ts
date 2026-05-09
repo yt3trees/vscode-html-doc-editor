@@ -61,6 +61,35 @@ const inspector = new Inspector(
     if (currentPath) {
       vscode.postMessage({ type: 'duplicateElement', path: currentPath });
     }
+  },
+  {
+    onInsertRowAbove: () => {
+      if (currentPath) { vscode.postMessage({ type: 'insertRow', path: currentPath, position: 'before' }); }
+    },
+    onInsertRowBelow: () => {
+      if (currentPath) { vscode.postMessage({ type: 'insertRow', path: currentPath, position: 'after' }); }
+    },
+    onInsertColLeft: () => {
+      if (currentPath) { vscode.postMessage({ type: 'insertColumn', path: currentPath, position: 'before' }); }
+    },
+    onInsertColRight: () => {
+      if (currentPath) { vscode.postMessage({ type: 'insertColumn', path: currentPath, position: 'after' }); }
+    },
+    onRemoveRow: () => {
+      if (currentPath) { vscode.postMessage({ type: 'removeRow', path: currentPath }); }
+    },
+    onRemoveColumn: () => {
+      if (currentPath) { vscode.postMessage({ type: 'removeColumn', path: currentPath }); }
+    },
+    onMergeRight: () => {
+      if (currentPath) { vscode.postMessage({ type: 'mergeCellRight', path: currentPath }); }
+    },
+    onMergeDown: () => {
+      if (currentPath) { vscode.postMessage({ type: 'mergeCellDown', path: currentPath }); }
+    },
+    onSplitCell: () => {
+      if (currentPath) { vscode.postMessage({ type: 'splitCell', path: currentPath }); }
+    },
   }
 );
 
@@ -198,11 +227,19 @@ function selectElement(el: HTMLElement): void {
 
   overlay.show(el, iframe, currentPath!);
 
+  const parentChain: string[] = [];
+  let ancestor: Element | null = el.parentElement;
+  while (ancestor && ancestor !== doc.body) {
+    parentChain.push(ancestor.tagName.toLowerCase());
+    ancestor = ancestor.parentElement;
+  }
+
   inspector.show({
     path: currentPath!,
     tagName: el.tagName.toLowerCase(),
     style: getElementStyle(el),
     textContent: el.textContent ?? '',
+    parentChain,
   });
 }
 
@@ -285,7 +322,6 @@ document.addEventListener('keydown', handleKeydown);
 
 function attachIframeListeners(): void {
   const doc = iframe.contentDocument;
-  inspectorEl.innerHTML = `<p style="padding:12px;color:yellow;">DBG attach: doc=${doc ? 'ok' : 'null'}</p>`;
   if (!doc) {
     return;
   }
@@ -302,7 +338,6 @@ function attachIframeListeners(): void {
       return;
     }
     e.preventDefault();
-    inspectorEl.innerHTML = `<p style="padding:12px;color:lime;">DBG click: ${target?.tagName ?? 'null'}</p>`;
     if (!target || target === doc.documentElement || target === doc.body) {
       return;
     }
@@ -310,11 +345,7 @@ function attachIframeListeners(): void {
     currentPath = path;
     outline.highlight(path);
     vscode.postMessage({ type: 'selectElement', path });
-    try {
-      selectElement(target as HTMLElement);
-    } catch (err) {
-      inspectorEl.innerHTML = `<p style="padding:12px;color:red;">DBG error: ${err}</p>`;
-    }
+    selectElement(target as HTMLElement);
   }, { capture: true });
 
   doc.addEventListener('dblclick', (e) => {
@@ -375,6 +406,11 @@ function attachIframeListeners(): void {
     if (el) {
       currentEl = el as HTMLElement;
       selectElement(el as HTMLElement);
+    } else {
+      currentPath = null;
+      currentEl = null;
+      inspector.clear();
+      overlay.hide();
     }
   }
 }
@@ -383,8 +419,15 @@ window.addEventListener('resize', () => overlay.update());
 iframe.addEventListener('mouseleave', () => setHover(null));
 
 function loadHtml(html: string): void {
+  const scrollX = iframe.contentWindow?.scrollX ?? 0;
+  const scrollY = iframe.contentWindow?.scrollY ?? 0;
   iframe.addEventListener('load', () => {
     attachIframeListeners();
+    if (scrollX !== 0 || scrollY !== 0) {
+      requestAnimationFrame(() => {
+        iframe.contentWindow?.scrollTo(scrollX, scrollY);
+      });
+    }
   }, { once: true });
   iframe.srcdoc = html;
 }
@@ -486,6 +529,22 @@ style.textContent = `
     font-size: 9px; opacity: 0.5; min-width: 26px; text-align: center;
     border: 1px solid currentColor; border-radius: 2px; padding: 0 2px; flex-shrink: 0;
   }
+  .table-actions {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    padding: 4px 8px 8px;
+  }
+  .tbl-btn {
+    padding: 4px 4px; font-size: 10px;
+    background: var(--vscode-button-secondaryBackground, #3a3d41);
+    color: var(--vscode-button-secondaryForeground, #ccc);
+    border: 1px solid var(--vscode-button-border, #555);
+    border-radius: 2px; cursor: pointer; text-align: center;
+  }
+  .tbl-btn:hover:not(:disabled) { opacity: 0.8; }
+  .tbl-btn:disabled { opacity: 0.3; cursor: default; }
+  .tbl-btn.danger { color: #e57373; border-color: #e57373; }
+  .tbl-btn-wide { grid-column: 1 / -1; }
+  .tbl-hint { grid-column: 1 / -1; font-size: 10px; opacity: 0.45; padding: 2px 0 0; text-align: center; }
 `;
 document.head.appendChild(style);
 

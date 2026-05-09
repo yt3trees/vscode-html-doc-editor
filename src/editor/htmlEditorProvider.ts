@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { parseHtml, applySetStyle, applySetText, applySetInnerHtml, applyRemoveElement, applyDuplicateElement, applyMoveElement, applyInsertElement } from './astPatcher';
+import { parseHtml, applySetStyle, applySetText, applySetInnerHtml, applyRemoveElement, applyDuplicateElement, applyMoveElement, applyInsertElement, applyInsertRow, applyInsertColumn, applyRemoveRow, applyRemoveColumn, applyMergeCellRight, applyMergeCellDown, applySplitCell } from './astPatcher';
 import type { WebviewMessage, HostMessage } from './messageProtocol';
 
 export class HtmlEditorProvider implements vscode.CustomTextEditorProvider {
@@ -56,6 +56,7 @@ export class HtmlEditorProvider implements vscode.CustomTextEditorProvider {
   }
 
   private async handleMessage(document: vscode.TextDocument, msg: WebviewMessage): Promise<void> {
+    console.log('[edit-html] msg:', msg.type);
     if (msg.type === 'ready') {
       return;
     }
@@ -78,6 +79,27 @@ export class HtmlEditorProvider implements vscode.CustomTextEditorProvider {
       newSource = applyMoveElement(source, doc, msg.fromPath, msg.toPath, msg.position);
     } else if (msg.type === 'insertElement') {
       newSource = applyInsertElement(source, doc, msg.refPath, msg.position, msg.html);
+    } else if (msg.type === 'insertRow') {
+      newSource = applyInsertRow(source, doc, msg.path, msg.position);
+      console.log(`[edit-html] insertRow changed=${newSource !== source}`);
+    } else if (msg.type === 'insertColumn') {
+      newSource = applyInsertColumn(source, doc, msg.path, msg.position);
+      console.log(`[edit-html] insertColumn path=${JSON.stringify(msg.path)} changed=${newSource !== source}`);
+    } else if (msg.type === 'removeRow') {
+      newSource = applyRemoveRow(source, doc, msg.path);
+      console.log(`[edit-html] removeRow changed=${newSource !== source}`);
+    } else if (msg.type === 'removeColumn') {
+      newSource = applyRemoveColumn(source, doc, msg.path);
+      console.log(`[edit-html] removeColumn path=${JSON.stringify(msg.path)} changed=${newSource !== source}`);
+    } else if (msg.type === 'mergeCellRight') {
+      newSource = applyMergeCellRight(source, doc, msg.path);
+      console.log(`[edit-html] mergeCellRight changed=${newSource !== source}`);
+    } else if (msg.type === 'mergeCellDown') {
+      newSource = applyMergeCellDown(source, doc, msg.path);
+      console.log(`[edit-html] mergeCellDown changed=${newSource !== source}`);
+    } else if (msg.type === 'splitCell') {
+      newSource = applySplitCell(source, doc, msg.path);
+      console.log(`[edit-html] splitCell changed=${newSource !== source}`);
     } else if (msg.type === 'save') {
       await document.save();
       return;

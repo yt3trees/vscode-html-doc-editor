@@ -9,6 +9,19 @@ interface InspectorState {
   tagName: string;
   style: Record<string, string>;
   textContent: string;
+  parentChain?: string[];
+}
+
+interface TableActions {
+  onInsertRowAbove: () => void;
+  onInsertRowBelow: () => void;
+  onInsertColLeft: () => void;
+  onInsertColRight: () => void;
+  onRemoveRow: () => void;
+  onRemoveColumn: () => void;
+  onMergeRight: () => void;
+  onMergeDown: () => void;
+  onSplitCell: () => void;
 }
 
 const COLOR_PROPS = new Set([
@@ -71,7 +84,8 @@ export class Inspector {
     private onStyleLive: StyleSetter,
     private onSetText: TextSetter,
     private onRemove: ElementAction,
-    private onDuplicate: ElementAction
+    private onDuplicate: ElementAction,
+    private tableActions: TableActions
   ) {}
 
   show(state: InspectorState): void {
@@ -84,6 +98,15 @@ export class Inspector {
     this.container.innerHTML = '<p style="padding:12px;opacity:0.5;">Select an element</p>';
   }
 
+  private isTableContext(): boolean {
+    if (!this.state) { return false; }
+    const { tagName, parentChain } = this.state;
+    const tableTags = new Set(['table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot']);
+    if (tableTags.has(tagName)) { return true; }
+    if (parentChain) { return parentChain.some((t) => tableTags.has(t)); }
+    return false;
+  }
+
   private render(): void {
     if (!this.state) { return; }
     const { tagName, style, textContent } = this.state;
@@ -94,6 +117,31 @@ export class Inspector {
     html.push('<button id="btn-duplicate">Duplicate</button>');
     html.push('<button id="btn-remove" class="danger">Delete</button>');
     html.push('</div>');
+
+    if (this.isTableContext()) {
+      const isTable = tagName === 'table';
+      const isTr = tagName === 'tr';
+      const isCell = tagName === 'td' || tagName === 'th';
+      const disableAll = isTable ? 'disabled' : '';
+      const disableColMerge = (isTable || isTr) ? 'disabled' : '';
+      html.push('<div class="section-label">TABLE</div>');
+      html.push('<div class="table-actions">');
+      html.push(`<button class="tbl-btn" id="tbl-row-above" ${disableAll}>Row ▲</button>`);
+      html.push(`<button class="tbl-btn" id="tbl-row-below" ${disableAll}>Row ▼</button>`);
+      html.push(`<button class="tbl-btn" id="tbl-col-left" ${disableColMerge}>Col ◄</button>`);
+      html.push(`<button class="tbl-btn" id="tbl-col-right" ${disableColMerge}>Col ►</button>`);
+      html.push(`<button class="tbl-btn danger" id="tbl-del-row" ${disableAll}>Del Row</button>`);
+      html.push(`<button class="tbl-btn danger" id="tbl-del-col" ${disableColMerge}>Del Col</button>`);
+      html.push(`<button class="tbl-btn" id="tbl-merge-right" ${disableColMerge}>Merge →</button>`);
+      html.push(`<button class="tbl-btn" id="tbl-merge-down" ${disableColMerge}>Merge ↓</button>`);
+      html.push(`<button class="tbl-btn tbl-btn-wide" id="tbl-split" ${disableColMerge}>Split Cell</button>`);
+      if (isTable) {
+        html.push('<p class="tbl-hint">Select a cell to edit rows &amp; columns</p>');
+      } else if (isTr) {
+        html.push('<p class="tbl-hint">Select a cell to edit columns &amp; merge</p>');
+      }
+      html.push('</div>');
+    }
 
     if (textContent.trim()) {
       html.push('<div class="section-label">TEXT</div>');
@@ -211,6 +259,17 @@ export class Inspector {
 
     document.getElementById('btn-remove')?.addEventListener('click', () => this.onRemove());
     document.getElementById('btn-duplicate')?.addEventListener('click', () => this.onDuplicate());
+
+    // Table buttons
+    document.getElementById('tbl-row-above')?.addEventListener('click', () => this.tableActions.onInsertRowAbove());
+    document.getElementById('tbl-row-below')?.addEventListener('click', () => this.tableActions.onInsertRowBelow());
+    document.getElementById('tbl-col-left')?.addEventListener('click', () => this.tableActions.onInsertColLeft());
+    document.getElementById('tbl-col-right')?.addEventListener('click', () => this.tableActions.onInsertColRight());
+    document.getElementById('tbl-del-row')?.addEventListener('click', () => this.tableActions.onRemoveRow());
+    document.getElementById('tbl-del-col')?.addEventListener('click', () => this.tableActions.onRemoveColumn());
+    document.getElementById('tbl-merge-right')?.addEventListener('click', () => this.tableActions.onMergeRight());
+    document.getElementById('tbl-merge-down')?.addEventListener('click', () => this.tableActions.onMergeDown());
+    document.getElementById('tbl-split')?.addEventListener('click', () => this.tableActions.onSplitCell());
 
     // Scrub: drag label to change numeric values
     this.container.querySelectorAll<HTMLElement>('[data-scrub]').forEach((label) => {

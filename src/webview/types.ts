@@ -9,6 +9,13 @@ export type WebviewMessage =
   | { type: 'duplicateElement'; path: NodePath }
   | { type: 'moveElement'; fromPath: NodePath; toPath: NodePath; position: 'before' | 'after' | 'inside' }
   | { type: 'insertElement'; refPath: NodePath | null; position: 'after' | 'append'; html: string }
+  | { type: 'insertRow'; path: NodePath; position: 'before' | 'after' }
+  | { type: 'insertColumn'; path: NodePath; position: 'before' | 'after' }
+  | { type: 'removeRow'; path: NodePath }
+  | { type: 'removeColumn'; path: NodePath }
+  | { type: 'mergeCellRight'; path: NodePath }
+  | { type: 'mergeCellDown'; path: NodePath }
+  | { type: 'splitCell'; path: NodePath }
   | { type: 'save' }
   | { type: 'undo' }
   | { type: 'redo' };
