@@ -9,6 +9,7 @@
     .header-meta { font-size: 11px; letter-spacing: 0.1em; color: #888; margin-bottom: 36px; }
     .breadcrumb { display: flex; gap: 8px; align-items: center; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 </head>
 <body>
   <div class="page">
@@ -66,6 +67,15 @@
       <li><strong>Auth Service</strong> — issues and validates JWT tokens, manages OAuth flows</li>
       <li><strong>Data API</strong> — provides read/write access to the canonical data store</li>
     </ul>
+
+    <h3 style="font-size: 16px; font-weight: 600; color: #2a5bd7; margin-bottom: 8px;">Architecture Overview</h3>
+    <div class="mermaid" style="margin: 0 0 24px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 6px; background: #fafafa;">
+flowchart LR
+  Client([Client]) --> Gateway
+  Gateway --> Auth[Auth Service]
+  Gateway --> Data[Data API]
+  Data --> Bus[(Event Bus)]
+    </div>
 
     <h3 style="font-size: 16px; font-weight: 600; color: #2a5bd7; margin-bottom: 8px;">Communication</h3>
     <p style="font-size: 14px; line-height: 1.8; color: #444; margin-bottom: 16px;">
@@ -143,5 +153,8 @@
     </ul>
 
   </div>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { primaryColor: '#f0f4ff', primaryBorderColor: '#2a5bd7', lineColor: '#2a5bd7', fontFamily: 'inherit' }, flowchart: { curve: 'basis' } });
+  </script>
 </body>
 </html>

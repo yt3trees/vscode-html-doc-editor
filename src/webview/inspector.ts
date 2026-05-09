@@ -10,6 +10,7 @@ interface InspectorState {
   style: Record<string, string>;
   textContent: string;
   parentChain?: string[];
+  mermaidSource?: string;
 }
 
 interface TableActions {
@@ -109,6 +110,10 @@ export class Inspector {
 
   private render(): void {
     if (!this.state) { return; }
+    if (this.state.mermaidSource !== undefined) {
+      this.renderMermaidMode();
+      return;
+    }
     const { tagName, style, textContent } = this.state;
     const html: string[] = [];
 
@@ -172,6 +177,38 @@ export class Inspector {
 
     this.container.innerHTML = html.join('');
     this.attachListeners();
+  }
+
+  private renderMermaidMode(): void {
+    const dsl = this.state!.mermaidSource!;
+    this.container.innerHTML = `
+      <div class="section-header">&lt;div.mermaid&gt;</div>
+      <div class="action-row">
+        <button id="btn-duplicate">Duplicate</button>
+        <button id="btn-remove" class="danger">Delete</button>
+      </div>
+      <div class="section-label">MERMAID DSL</div>
+      <div class="field-row full">
+        <textarea id="mermaid-edit" rows="14" style="font-family:var(--vscode-editor-font-family,monospace);font-size:11px;resize:vertical;width:100%;background:var(--vscode-input-background,#3c3c3c);color:var(--vscode-input-foreground,#ccc);border:1px solid var(--vscode-input-border,#555);padding:4px;border-radius:2px;">${escapeAttr(dsl)}</textarea>
+      </div>
+      <div class="action-row" style="margin-top:4px;">
+        <button id="btn-mermaid-save" style="background:var(--vscode-button-background,#0e639c);color:var(--vscode-button-foreground,#fff);border:none;">Save DSL</button>
+      </div>
+      <p style="padding:6px 8px;font-size:10px;opacity:0.5;">Ctrl+Enter to save &amp; re-render</p>
+    `;
+
+    const textarea = this.container.querySelector<HTMLTextAreaElement>('#mermaid-edit')!;
+    const commitDsl = () => this.onSetText(textarea.value);
+
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        commitDsl();
+      }
+    });
+    document.getElementById('btn-mermaid-save')?.addEventListener('click', commitDsl);
+    document.getElementById('btn-remove')?.addEventListener('click', () => this.onRemove());
+    document.getElementById('btn-duplicate')?.addEventListener('click', () => this.onDuplicate());
   }
 
   private renderField(def: PropDef, value: string): string {

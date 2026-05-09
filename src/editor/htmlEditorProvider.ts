@@ -137,7 +137,7 @@ export class HtmlEditorProvider implements vscode.CustomTextEditorProvider {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' 'unsafe-inline'; style-src 'unsafe-inline'; frame-src *; img-src * data: blob:; font-src *;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; frame-src *; img-src * data: blob:; font-src *; connect-src https://cdn.jsdelivr.net;">
   <title>HTML Document Editor</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }

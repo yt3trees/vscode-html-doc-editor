@@ -25,6 +25,7 @@ let editingSnapshot: string = '';
 let editingHasMixed: boolean = false;
 let isComposing: boolean = false;
 let pendingHtml: string | null = null;
+let lastSourceHtml: string = '';
 
 const commitStyle = (prop: string, value: string) => {
   if (currentPath) {
@@ -234,12 +235,16 @@ function selectElement(el: HTMLElement): void {
     ancestor = ancestor.parentElement;
   }
 
+  const isMermaid = el.classList.contains('mermaid');
+  const mermaidSource = isMermaid ? getMermaidSource(currentPath!) ?? undefined : undefined;
+
   inspector.show({
     path: currentPath!,
     tagName: el.tagName.toLowerCase(),
     style: getElementStyle(el),
     textContent: el.textContent ?? '',
     parentChain,
+    mermaidSource,
   });
 }
 
@@ -332,7 +337,7 @@ function attachIframeListeners(): void {
   doc.addEventListener('keydown', handleKeydown as EventListener);
 
   doc.addEventListener('click', (e) => {
-    const target = e.target as Element;
+    let target = e.target as Element;
     // Inside contenteditable — let browser handle caret
     if (editingEl && editingEl.contains(target)) {
       return;
@@ -340,6 +345,11 @@ function attachIframeListeners(): void {
     e.preventDefault();
     if (!target || target === doc.documentElement || target === doc.body) {
       return;
+    }
+    // Escalate to .mermaid container when clicking inside rendered SVG
+    const mermaidContainer = target.closest?.('.mermaid') as HTMLElement | null;
+    if (mermaidContainer) {
+      target = mermaidContainer;
     }
     const path = getNodePath(target);
     currentPath = path;
@@ -373,7 +383,7 @@ function attachIframeListeners(): void {
 
   // Inject hover highlight CSS into iframe
   const hoverStyle = doc.createElement('style');
-  hoverStyle.textContent = '[data-edit-hover]{outline:1px solid rgba(74,144,217,0.5)!important;}[data-edit-sel]{outline:2px solid rgba(74,144,217,0.9)!important;}[contenteditable="true"]{outline:2px dashed rgba(255,200,0,0.9)!important;cursor:text;}';
+  hoverStyle.textContent = '[data-edit-hover]{outline:1px solid rgba(74,144,217,0.5)!important;}[data-edit-sel]{outline:2px solid rgba(74,144,217,0.9)!important;}[contenteditable="true"]{outline:2px dashed rgba(255,200,0,0.9)!important;cursor:text;}.mermaid{cursor:pointer;}.mermaid svg{pointer-events:none;}';
   doc.head.appendChild(hoverStyle);
 
   // Hover highlight
@@ -418,7 +428,23 @@ function attachIframeListeners(): void {
 window.addEventListener('resize', () => overlay.update());
 iframe.addEventListener('mouseleave', () => setHover(null));
 
+function getMermaidSource(path: NodePath): string | null {
+  if (!lastSourceHtml) { return null; }
+  const parser = new DOMParser();
+  const sourceDom = parser.parseFromString(lastSourceHtml, 'text/html');
+  let current: Node = sourceDom;
+  for (const idx of path) {
+    if (!current.childNodes || idx >= current.childNodes.length) { return null; }
+    current = current.childNodes[idx];
+  }
+  if (current instanceof Element && current.classList.contains('mermaid')) {
+    return current.textContent ?? '';
+  }
+  return null;
+}
+
 function loadHtml(html: string): void {
+  lastSourceHtml = html;
   const scrollX = iframe.contentWindow?.scrollX ?? 0;
   const scrollY = iframe.contentWindow?.scrollY ?? 0;
   iframe.addEventListener('load', () => {
