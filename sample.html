@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sample Document</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; color: #1a1a1a; }
+    .page { max-width: 860px; margin: 0 auto; padding: 48px 40px; }
+    .header-meta { font-size: 11px; letter-spacing: 0.1em; color: #888; margin-bottom: 36px; }
+    .breadcrumb { display: flex; gap: 8px; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <div class="header-meta">
+      <div class="breadcrumb">
+        <span>DOC</span>
+        <span>·</span>
+        <span style="color: #e74c3c; font-weight: 600;">SPEC-001</span>
+        <span>PRODUCT SPECIFICATION</span>
+      </div>
+    </div>
+
+    <h1 style="font-size: 40px; font-weight: 700; color: #1a1a1a; line-height: 1.2; margin-bottom: 20px;">
+      Acme Platform —<br>
+      <span style="color: #2a5bd7;">Developer Guide</span>
+    </h1>
+
+    <p style="font-size: 14px; line-height: 1.8; color: #555; margin-bottom: 32px;">
+      This document defines the specification for the Acme Platform core services,
+      including API contracts, authentication flows, and deployment requirements.
+    </p>
+
+    <div style="background: #fef9e7; border: 1px solid #f0d060; border-radius: 4px; padding: 12px 16px; margin-bottom: 40px; font-size: 13px; color: #7a6000;">
+      TODO: Rate-limiting behavior under burst traffic needs further clarification. See issue #42.
+    </div>
+
+    <!-- Section 1 -->
+    <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px; margin-top: 40px;">§ 1  Overview</h2>
+
+    <h3 style="font-size: 16px; font-weight: 600; color: #2a5bd7; margin-bottom: 8px;">Purpose</h3>
+    <p style="font-size: 14px; line-height: 1.8; color: #444; margin-bottom: 24px;">
+      The Acme Platform provides a unified layer for authentication, data access, and event routing
+      across all product modules. It is designed to be consumed by both internal services and
+      third-party integrations.
+    </p>
+
+    <h3 style="font-size: 16px; font-weight: 600; color: #2a5bd7; margin-bottom: 8px;">Target Audience</h3>
+    <ul style="font-size: 14px; line-height: 2; color: #444; padding-left: 20px; margin-bottom: 24px;">
+      <li>Backend engineers integrating with platform APIs</li>
+      <li>DevOps engineers managing deployments and infrastructure</li>
+      <li>Product managers reviewing technical constraints</li>
+    </ul>
+
+    <!-- Section 2 -->
+    <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px; margin-top: 40px;">§ 2  Architecture</h2>
+
+    <h3 style="font-size: 16px; font-weight: 600; color: #2a5bd7; margin-bottom: 8px;">Components</h3>
+    <p style="font-size: 14px; line-height: 1.8; color: #444; margin-bottom: 16px;">
+      The platform consists of three primary services:
+    </p>
+    <ul style="font-size: 14px; line-height: 2; color: #444; padding-left: 20px; margin-bottom: 24px;">
+      <li><strong>Gateway</strong> — entry point for all external requests, handles TLS termination and routing</li>
+      <li><strong>Auth Service</strong> — issues and validates JWT tokens, manages OAuth flows</li>
+      <li><strong>Data API</strong> — provides read/write access to the canonical data store</li>
+    </ul>
+
+    <h3 style="font-size: 16px; font-weight: 600; color: #2a5bd7; margin-bottom: 8px;">Communication</h3>
+    <p style="font-size: 14px; line-height: 1.8; color: #444; margin-bottom: 24px;">
+      Internal service-to-service calls use gRPC over mTLS. External clients communicate via REST over HTTPS.
+      Asynchronous workflows are handled through an event bus (Kafka-compatible).
+    </p>
+
+    <!-- Section 3 -->
+    <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px; margin-top: 40px;">§ 3  Scope</h2>
+    <p style="font-size: 14px; line-height: 1.8; color: #444; margin-bottom: 24px;">
+      This version (v0.4) covers the MVP feature set. Features planned for GA (v1.0) are tracked
+      separately and will be incorporated in a subsequent revision of this document.
+    </p>
+
+    <div style="display: flex; gap: 24px; margin-bottom: 40px;">
+      <div style="flex: 1; background: #f0f4ff; border-radius: 6px; padding: 16px 20px;">
+        <p style="font-size: 12px; font-weight: 600; color: #2a5bd7; margin: 0 0 6px;">IN SCOPE (v0.4)</p>
+        <ul style="font-size: 13px; line-height: 1.9; color: #333; padding-left: 16px; margin: 0;">
+          <li>Token issuance and refresh</li>
+          <li>CRUD endpoints for core resources</li>
+          <li>Webhook delivery with retry</li>
+        </ul>
+      </div>
+      <div style="flex: 1; background: #f5f5f5; border-radius: 6px; padding: 16px 20px;">
+        <p style="font-size: 12px; font-weight: 600; color: #888; margin: 0 0 6px;">OUT OF SCOPE (v0.4)</p>
+        <ul style="font-size: 13px; line-height: 1.9; color: #333; padding-left: 16px; margin: 0;">
+          <li>Multi-region failover</li>
+          <li>Real-time streaming API</li>
+          <li>Admin dashboard UI</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 4 -->
+    <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px; margin-top: 40px;">§ 4  Open Questions</h2>
+    <p style="font-size: 14px; line-height: 1.8; color: #444;">
+      The following items remain unresolved and require stakeholder input before implementation begins.
+    </p>
+    <ul style="font-size: 14px; line-height: 2; color: #444; padding-left: 20px; margin-top: 12px;">
+      <li>Token expiry policy for long-lived integrations</li>
+      <li>Preferred observability stack (Datadog vs. OpenTelemetry)</li>
+      <li>SLA target for the Data API (99.9% vs. 99.95%)</li>
+    </ul>
+
+  </div>
+</body>
+</html>
