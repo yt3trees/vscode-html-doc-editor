@@ -3,15 +3,26 @@
   "displayName": "HTML Document Editor",
   "description": "WYSIWYG visual editor for static HTML files",
   "version": "0.1.0",
+  "publisher": "yt3trees",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": ["Other"],
+  "keywords": ["html", "wysiwyg", "visual editor", "document", "editor"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/placeholder/html-visual-editor"
+    "url": "https://github.com/yt3trees/vscode-html-doc-editor"
   },
+  "bugs": {
+    "url": "https://github.com/yt3trees/vscode-html-doc-editor/issues"
+  },
+  "homepage": "https://github.com/yt3trees/vscode-html-doc-editor#readme",
   "license": "MIT",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
